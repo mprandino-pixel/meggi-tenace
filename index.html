@@ -174,7 +174,7 @@ header.top{padding-block:10px 8px}
   <button type="button" id="b-plan" aria-expanded="true" aria-controls="p-plan">План</button>
   <button type="button" id="b-pub" aria-expanded="false" aria-controls="p-pub">Опубликованное</button>
   <button type="button" id="b-stat" aria-expanded="false" aria-controls="p-stat">Статистика</button>
-  <button type="button" id="b-books" aria-expanded="false" aria-controls="p-books">По книгам</button>
+  <button type="button" id="b-books" aria-expanded="false" aria-controls="p-books">Площадки</button>
   <button type="button" id="b-dm" aria-expanded="false" aria-controls="p-dm">Директ</button>
 </nav>
 </header>
@@ -278,9 +278,6 @@ header.top{padding-block:10px 8px}
 <section class="panel" id="p-stat" hidden>
   <h2>Статистика</h2>
   <p class="pnote" id="st-asof"></p>
-  <h3 class="sth">Комментарии и отзывы читателей</h3>
-  <p class="pnote" id="cm-sum"></p>
-  <div id="cm-list"></div>
   <h3 class="sth">Instagram</h3>
   <div class="kpis" id="st-kpi"></div>
   <p class="pnote" id="st-split"></p>
@@ -292,10 +289,14 @@ header.top{padding-block:10px 8px}
 </section>
 
 <section class="panel" id="p-books" hidden>
-  <h2>Статистика по книгам</h2>
+  <h2>Площадки</h2>
+  <div class="tabs" role="group" aria-label="Площадки"><button type="button" id="bk-b-st" aria-expanded="true">Статистика по книгам</button><button type="button" id="bk-b-cm" aria-expanded="false">Комментарии на площадках</button></div>
+  <div id="bk-cm" hidden><p class="pnote" id="cm-sum"></p><div id="cm-list"></div></div>
+  <div id="bk-st">
   <p class="pnote" id="bk-asof"></p>
   <div id="bk-list"></div>
   <p class="pnote" id="bk-extra"></p>
+  </div>
 </section>
 
 <div id="p-plan">
@@ -364,11 +365,16 @@ for(const b of document.querySelectorAll('.stat[data-go]'))b.addEventListener('c
  const tb=document.getElementById('dm-list');for(const [w,t,st,n] of DM.items){const tr=el('tr');tr.appendChild(el('td',null,w));tr.appendChild(el('td',null,t));tr.appendChild(el('td',st==='need'?'need':st==='ok'?'okk':'mut',(st==='need'?'🚩 ':st==='ok'?'✓ ':'')+n));tb.appendChild(tr);}
  document.getElementById('rv-asof').textContent='Данные на '+RV.asof+'. Лайкаете и комментируете вы сами: Claude только готовит текст.';
  const rb=document.getElementById('rv-list');for(const [w,d,u,c] of RV.items){const tr=el('tr');const a=w.includes(',')?el('span',null,w):el('a',null,w);if(!w.includes(',')){a.href='https://www.instagram.com/'+w+'/';a.target='_blank';a.rel='noopener';}const td=el('td');td.appendChild(a);tr.appendChild(td);tr.appendChild(el('td',null,d));const t3=el('td');if(u){const l=el('a',null,'открыть пост ↗');l.href=u;l.target='_blank';l.rel='noopener';t3.appendChild(l);}else t3.appendChild(el('span','mut','—'));tr.appendChild(t3);tr.appendChild(el('td',null,c));rb.appendChild(tr);}}
-// комментарии
-{const L=COMMENTS.items,n=L.filter(c=>c.st==='need').length;document.getElementById('cm-sum').textContent='Данные на '+COMMENTS.asof+'. Всего '+L.length+' · 🚩 ждут ответа: '+n+'.';
- const box=document.getElementById('cm-list');for(const c of L){const d=el('div','cm'+(c.st==='need'?' need':''));const h=el('div','cmh');
- h.appendChild(el('span','flag '+(c.st==='need'?'need':'ok'),c.st==='need'?'🚩 нужен ответ':'✓ отвечено'));h.appendChild(el('b',null,c.who));h.appendChild(el('span',null,c.d+' · '+c.pl+' · '+c.b+(c.r?' · '+c.r:'')));d.appendChild(h);
- d.appendChild(el('div','cmt',c.t));if(c.rep)d.appendChild(el('div','cmr',c.rep));box.appendChild(d);}}
+// комментарии на площадках
+{const L=COMMENTS.items,n=L.filter(c=>c.st==='need').length;document.getElementById('cm-sum').textContent='Данные на '+COMMENTS.asof+'. Всего отзывов: '+L.length+(n?', ждут ответа: '+n:', все с ответом')+'.';
+ const box=document.getElementById('cm-list');
+ for(const pl of ['Литрес','Литнет','ПродаМан']){const R=L.filter(c=>c.pl===pl);const h=el('h3','sth',pl);h.appendChild(el('span','bks',' · '+R.length));box.appendChild(h);
+  if(!R.length){box.appendChild(el('p','pnote','Комментариев нет.'));continue;}
+  for(const c of R){const d=el('div','cm'+(c.st==='need'?' need':''));const h=el('div','cmh');
+   h.appendChild(el('span','flag '+(c.st==='need'?'need':'ok'),c.st==='need'?'🚩 нужен ответ':'✓ отвечено'));h.appendChild(el('b',null,c.who));h.appendChild(el('span',null,c.d+' · '+c.b+(c.r?' · '+c.r:'')));d.appendChild(h);
+   d.appendChild(el('div','cmt',c.t));if(c.rep)d.appendChild(el('div','cmr',c.rep));box.appendChild(d);}}
+ const sw=on=>{document.getElementById('bk-cm').hidden=!on;document.getElementById('bk-st').hidden=on;document.getElementById('bk-b-cm').setAttribute('aria-expanded',on);document.getElementById('bk-b-st').setAttribute('aria-expanded',!on);};
+ document.getElementById('bk-b-cm').addEventListener('click',()=>sw(true));document.getElementById('bk-b-st').addEventListener('click',()=>sw(false));}
 // статистика
 {document.getElementById('st-asof').textContent='Данные на '+STAT.asof;
  const k=document.getElementById('st-kpi');for(const [l,v] of STAT.acc){const d=el('div','kpi');d.appendChild(el('b',null,String(v)));d.appendChild(el('span',null,l));k.appendChild(d);}
